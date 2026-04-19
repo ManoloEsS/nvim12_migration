@@ -13,6 +13,7 @@ vim.opt.rtp:prepend(vim.fn.stdpath 'config')
 
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 vim.o.number = true
@@ -101,7 +102,6 @@ vim.pack.add({
 
   -- UI
   'https://github.com/folke/tokyonight.nvim',
-  'https://github.com/nvim-lualine/lualine.nvim',
   'https://github.com/folke/snacks.nvim',
 
   -- Utilities
@@ -109,6 +109,9 @@ vim.pack.add({
   'https://github.com/ThePrimeagen/harpoon',
   'https://github.com/numToStr/FTerm.nvim',
   'https://github.com/windwp/nvim-ts-autotag',
+  'https://github.com/windwp/nvim-autopairs',
+  'https://github.com/mbbill/undotree',
+  'https://github.com/mfussenegger/nvim-lint',
   'https://github.com/NMAC427/guess-indent.nvim',
   -- 'https://github.com/ThePrimeagen/99.nvim', -- TODO: fix git credential issue
 }, { confirm = false })
@@ -118,8 +121,14 @@ vim.pack.add({
 -- Treesitter (main branch - new API for neovim 0.12)
 vim.pack.add({ 'https://github.com/nvim-treesitter/nvim-treesitter' }, { confirm = false })
 require('nvim-treesitter').setup({
-  ensure_installed = { 'lua', 'c', 'vim', 'vimdoc', 'bash', 'python', 'html', 'markdown', 'markdown_inline' },
+  ensure_installed = { 'lua', 'luadoc', 'c', 'diff', 'vim', 'vimdoc', 'query', 'bash', 'python', 'html', 'markdown', 'markdown_inline' },
 })
+
+-- nvim-ts-autotag
+require('nvim-ts-autotag').setup({})
+
+-- Guess indent
+require('guess-indent').setup({})
 
 -- Gitsigns
 require('gitsigns').setup({
@@ -130,6 +139,45 @@ require('gitsigns').setup({
     topdelete = { text = '‾' },
     changedelete = { text = '~' },
   },
+  on_attach = function(bufnr)
+    local gitsigns = require 'gitsigns'
+    local function map(mode, l, r, opts)
+      opts = opts or {}
+      opts.buffer = bufnr
+      vim.keymap.set(mode, l, r, opts)
+    end
+    -- Navigation
+    map('n', ']c', function()
+      if vim.wo.diff then
+        vim.cmd.normal { ']c', bang = true }
+      else
+        gitsigns.nav_hunk 'next'
+      end
+    end, { desc = 'Jump to next git [c]hange' })
+    map('n', '[c', function()
+      if vim.wo.diff then
+        vim.cmd.normal { '[c', bang = true }
+      else
+        gitsigns.nav_hunk 'prev'
+      end
+    end, { desc = 'Jump to previous git [c]hange' })
+    -- Actions (visual mode)
+    map('v', '<leader>hs', function() gitsigns.stage_hunk { vim.fn.line '.', vim.fn.line 'v' } end, { desc = 'git [s]tage hunk' })
+    map('v', '<leader>hr', function() gitsigns.reset_hunk { vim.fn.line '.', vim.fn.line 'v' } end, { desc = 'git [r]eset hunk' })
+    -- Actions (normal mode)
+    map('n', '<leader>hs', gitsigns.stage_hunk, { desc = 'git [s]tage hunk' })
+    map('n', '<leader>hr', gitsigns.reset_hunk, { desc = 'git [r]eset hunk' })
+    map('n', '<leader>hS', gitsigns.stage_buffer, { desc = 'git [S]tage buffer' })
+    map('n', '<leader>hu', gitsigns.undo_stage_hunk, { desc = 'git [u]ndo stage hunk' })
+    map('n', '<leader>hR', gitsigns.reset_buffer, { desc = 'git [R]eset buffer' })
+    map('n', '<leader>hp', gitsigns.preview_hunk, { desc = 'git [p]review hunk' })
+    map('n', '<leader>hb', gitsigns.blame_line, { desc = 'git [b]lame line' })
+    map('n', '<leader>hd', gitsigns.diffthis, { desc = 'git [d]iff against index' })
+    map('n', '<leader>hD', function() gitsigns.diffthis '@' end, { desc = 'git [D]iff against last commit' })
+    -- Toggles
+    map('n', '<leader>tb', gitsigns.toggle_current_line_blame, { desc = '[T]oggle git show [b]lame line' })
+    map('n', '<leader>tD', gitsigns.toggle_deleted, { desc = '[T]oggle git show [D]eleted' })
+  end,
 })
 
 -- Which-key
@@ -154,6 +202,9 @@ require('blink.cmp').setup({
   fuzzy = { implementation = 'lua' },
   signature = { enabled = true, window = { border = 'none' } },
 })
+
+-- Autopairs (integrates with blink.cmp automatically)
+require('nvim-autopairs').setup({})
 
 -- LSP Configuration
 local servers = {
@@ -205,6 +256,15 @@ vim.api.nvim_create_autocmd('LspAttach', {
   end,
 })
 
+-- Clean up document highlight refs when LSP detaches from a buffer
+vim.api.nvim_create_autocmd('LspDetach', {
+  group = vim.api.nvim_create_augroup('kickstart-lsp-detach', { clear = true }),
+  callback = function(event)
+    vim.lsp.buf.clear_references()
+    vim.api.nvim_clear_autocmds { group = 'kickstart-lsp-highlight', buffer = event.buf }
+  end,
+})
+
 -- Fidget
 require('fidget').setup({
   notification = { window = { winblend = 0 } },
@@ -219,6 +279,18 @@ require('conform').setup({
     return { timeout_ms = 500, lsp_format = 'fallback' }
   end,
   formatters_by_ft = { lua = { 'stylua' } },
+})
+
+-- nvim-lint
+local lint = require 'lint'
+lint.linters_by_ft = {
+  markdown = { 'markdownlint' },
+}
+vim.api.nvim_create_autocmd({ 'BufEnter', 'BufWritePost', 'InsertLeave' }, {
+  group = vim.api.nvim_create_augroup('lint', { clear = true }),
+  callback = function()
+    if vim.bo.modifiable then lint.try_lint() end
+  end,
 })
 
 -- Todo-comments
@@ -264,11 +336,23 @@ require('mini.ai').setup({ n_lines = 500 })
 require('mini.surround').setup()
 require('mini.statusline').setup({ use_icons = vim.g.have_nerd_font })
 
--- Harpoon (disabled - causes json serialization errors with snacks)
--- local harpoon = require('harpoon')
--- harpoon:setup({
---   settings = { save_on_toggle = false, sync_on_ui_close = false },
--- })
+-- Harpoon
+local harpoon = require 'harpoon'
+harpoon:setup({
+  settings = {
+    save_on_toggle = true,
+    sync_on_ui_close = true,
+    key = function() return vim.uv.cwd() end,
+  },
+})
+vim.keymap.set('n', '<leader>ha', function() harpoon:list():add() end, { desc = 'Harpoon [A]dd file' })
+vim.keymap.set('n', '<leader>hm', function() harpoon.ui:toggle_quick_menu(harpoon:list()) end, { desc = 'Harpoon [M]enu' })
+vim.keymap.set('n', '<A-h>', function() harpoon:list():select(1) end, { desc = 'Harpoon mark [1]' })
+vim.keymap.set('n', '<A-j>', function() harpoon:list():select(2) end, { desc = 'Harpoon mark [2]' })
+vim.keymap.set('n', '<A-k>', function() harpoon:list():select(3) end, { desc = 'Harpoon mark [3]' })
+vim.keymap.set('n', '<A-l>', function() harpoon:list():select(4) end, { desc = 'Harpoon mark [4]' })
+vim.keymap.set('n', '<leader>hn', function() harpoon:list():next() end, { desc = 'Harpoon [N]ext' })
+vim.keymap.set('n', '<leader>hp', function() harpoon:list():prev() end, { desc = 'Harpoon [P]revious' })
 
 -- FTerm (migrated from fterm_undotree.lua)
 local fterm = require('FTerm')
@@ -313,7 +397,7 @@ vim.keymap.set('n', '<leader><leader>', sn 'buffers', { desc = '[ ] Find existin
 -- Missing from old Telescope config
 vim.keymap.set('n', '<leader>sn', function() Snacks.picker.files { cwd = vim.fn.stdpath 'config' } end, { desc = '[S]earch [N]eovim files' })
 
--- LSP Attach keymaps - use vim.lsp.buf
+-- LSP Attach keymaps - use vim.lsp.buf / Snacks picker
 vim.api.nvim_create_autocmd('LspAttach', {
   group = vim.api.nvim_create_augroup('lsp-keymaps', { clear = true }),
   callback = function(event)
@@ -322,6 +406,8 @@ vim.api.nvim_create_autocmd('LspAttach', {
     vim.keymap.set('n', 'gri', vim.lsp.buf.implementation, { buffer = buf, desc = '[G]oto [I]mplementation' })
     vim.keymap.set('n', 'grd', vim.lsp.buf.definition, { buffer = buf, desc = '[G]oto [D]efinition' })
     vim.keymap.set('n', 'grt', vim.lsp.buf.type_definition, { buffer = buf, desc = '[G]oto [T]ype Definition' })
+    vim.keymap.set('n', 'gO', function() Snacks.picker.lsp_symbols() end, { buffer = buf, desc = 'LSP D[o]cument Symbols' })
+    vim.keymap.set('n', 'gW', function() Snacks.picker.lsp_workspace_symbols() end, { buffer = buf, desc = 'LSP [W]orkspace Symbols' })
   end,
 })
 
@@ -345,18 +431,10 @@ vim.keymap.set('t', '<C-a>', '<C-\\><C-n>', { desc = '[E]xit terminal' })
 vim.keymap.set('n', '<leader>a', [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gIc<Left><Left><Left><Left>]], { desc = '[A]ll in file' })
 vim.keymap.set('n', '<leader>w', '<C-w>=', { desc = 'Make equal splits' })
 
--- UndoTree - native in Neovim 0.12
-vim.keymap.set('n', '<leader>u', '<cmd>Unditree<CR>', { desc = 'UndoTree Toggle' })
-
--- Harpoon keymaps (disabled - see above)
--- vim.keymap.set('n', '<leader>ha', function() harpoon:list():add() end, { desc = 'Harpoon [A]dd file' })
--- vim.keymap.set('n', '<leader>hm', function() harpoon.ui:toggle_quick_menu(harpoon:list()) end, { desc = 'Harpoon [M]enu' })
--- vim.keymap.set('n', '<A-h>', function() harpoon:list():select(1) end, { desc = 'Harpoon mark [1]' })
--- vim.keymap.set('n', '<A-j>', function() harpoon:list():select(2) end, { desc = 'Harpoon mark [2]' })
--- vim.keymap.set('n', '<A-k>', function() harpoon:list():select(3) end, { desc = 'Harpoon mark [3]' })
--- vim.keymap.set('n', '<A-l>', function() harpoon:list():select(4) end, { desc = 'Harpoon mark [4]' })
--- vim.keymap.set('n', '<leader>hn', function() harpoon:list():next() end, { desc = 'Harpoon [N]ext' })
--- vim.keymap.set('n', '<leader>hp', function() harpoon:list():prev() end, { desc = 'Harpoon [P]revious' })
+-- UndoTree
+vim.g.undotree_SetFocusWhenToggle = 1
+vim.g.undotree_WindowLayout = 2
+vim.keymap.set('n', '<leader>u', '<cmd>UndotreeToggle<CR>', { desc = 'UndoTree Toggle' })
 
 -- Format keymap
 vim.keymap.set({ 'n', 'v' }, '<leader>f', function() require('conform').format({ async = true, lsp_format = 'fallback' }) end, { desc = '[F]ormat buffer' })
