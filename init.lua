@@ -110,7 +110,6 @@ vim.pack.add({
   'https://github.com/numToStr/FTerm.nvim',
   'https://github.com/windwp/nvim-ts-autotag',
   'https://github.com/windwp/nvim-autopairs',
-  'https://github.com/mbbill/undotree',
   'https://github.com/mfussenegger/nvim-lint',
   'https://github.com/NMAC427/guess-indent.nvim',
   -- 'https://github.com/ThePrimeagen/99.nvim', -- TODO: fix git credential issue
@@ -431,10 +430,8 @@ vim.keymap.set('t', '<C-a>', '<C-\\><C-n>', { desc = '[E]xit terminal' })
 vim.keymap.set('n', '<leader>a', [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gIc<Left><Left><Left><Left>]], { desc = '[A]ll in file' })
 vim.keymap.set('n', '<leader>w', '<C-w>=', { desc = 'Make equal splits' })
 
--- UndoTree
-vim.g.undotree_SetFocusWhenToggle = 1
-vim.g.undotree_WindowLayout = 2
-vim.keymap.set('n', '<leader>u', '<cmd>UndotreeToggle<CR>', { desc = 'UndoTree Toggle' })
+-- UndoTree (native in Neovim 0.12)
+vim.keymap.set('n', '<leader>u', '<cmd>Undotree<CR>', { desc = 'UndoTree Toggle' })
 
 -- Format keymap
 vim.keymap.set({ 'n', 'v' }, '<leader>f', function() require('conform').format({ async = true, lsp_format = 'fallback' }) end, { desc = '[F]ormat buffer' })
