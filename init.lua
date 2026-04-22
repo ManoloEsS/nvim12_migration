@@ -112,7 +112,7 @@ vim.pack.add({
   'https://github.com/windwp/nvim-autopairs',
   'https://github.com/mfussenegger/nvim-lint',
   'https://github.com/NMAC427/guess-indent.nvim',
-  'https://github.com/ThePrimeagen/99.nvim',
+  'https://github.com/ThePrimeagen/99.nvim', -- Re-enabled for Neovim 0.12 migration
 }, { confirm = false })
 
 -- [[ Plugin Configuration ]]
