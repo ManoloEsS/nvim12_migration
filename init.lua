@@ -353,6 +353,22 @@ vim.keymap.set('n', '<A-l>', function() harpoon:list():select(4) end, { desc = '
 vim.keymap.set('n', '<leader>hn', function() harpoon:list():next() end, { desc = 'Harpoon [N]ext' })
 vim.keymap.set('n', '<leader>hp', function() harpoon:list():prev() end, { desc = 'Harpoon [P]revious' })
 
+-- 99.nvim
+local _99 = require '99'
+local _99_cwd = vim.uv.cwd()
+local _99_basename = vim.fs.basename(_99_cwd)
+_99.setup({
+  provider = _99.Providers.OpenCodeProvider,
+  model = 'opencode/big-pickle',
+  logger = {
+    level = _99.INFO,
+    path = '/tmp/' .. _99_basename .. '.99.debug',
+    print_on_error = true,
+  },
+})
+vim.keymap.set('n', '<leader>9s', function() _99.search() end, { desc = '[9]9 Search' })
+vim.keymap.set('v', '<leader>9v', function() _99.visual() end, { desc = '[9]9 Visual' })
+
 -- FTerm (migrated from fterm_undotree.lua)
 local fterm = require('FTerm')
 local custom_term = fterm:new({
