@@ -1,10 +1,4 @@
 -- autopairs
 -- https://github.com/windwp/nvim-autopairs
-
----@module 'lazy'
----@type LazySpec
-return {
-  'windwp/nvim-autopairs',
-  event = 'InsertEnter',
-  opts = {},
-}
+-- Active config: require('nvim-autopairs').setup({}) in init.lua.
+-- nvim-autopairs is installed via vim.pack in init.lua.

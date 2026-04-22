@@ -1,29 +1,18 @@
 -- Neo-tree is a Neovim plugin to browse the file system
 -- https://github.com/nvim-neo-tree/neo-tree.nvim
-
----@module 'lazy'
----@type LazySpec
-return {
-  'nvim-neo-tree/neo-tree.nvim',
-  version = '*',
-  dependencies = {
-    'nvim-lua/plenary.nvim',
-    'nvim-tree/nvim-web-devicons', -- not strictly required, but recommended
-    'MunifTanjim/nui.nvim',
-  },
-  lazy = false,
-  keys = {
-    { '\\', ':Neotree reveal<CR>', desc = 'NeoTree reveal', silent = true },
-  },
-  ---@module 'neo-tree'
-  ---@type neotree.Config
-  opts = {
-    filesystem = {
-      window = {
-        mappings = {
-          ['\\'] = 'close_window',
-        },
-      },
-    },
-  },
-}
+--
+-- NOTE: This plugin is not currently installed via vim.pack.
+-- The active file explorer is Snacks.explorer (snacks.nvim).
+-- To enable neo-tree, add the following to the vim.pack.add() call in init.lua:
+--   'https://github.com/nvim-neo-tree/neo-tree.nvim',
+--   'https://github.com/MunifTanjim/nui.nvim',
+-- Then add the setup call below and require this file from init.lua.
+--
+-- require('neo-tree').setup({
+--   filesystem = {
+--     window = {
+--       mappings = { ['\\'] = 'close_window' },
+--     },
+--   },
+-- })
+-- vim.keymap.set('n', '\\', ':Neotree reveal<CR>', { desc = 'NeoTree reveal', silent = true })
