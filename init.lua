@@ -105,7 +105,7 @@ vim.pack.add({
   'https://github.com/folke/snacks.nvim',
 
   -- Utilities
-  'https://github.com/nvim-mini/mini.nvim',
+  'https://github.com/echasnovski/mini.nvim',
   'https://github.com/ThePrimeagen/harpoon',
   'https://github.com/numToStr/FTerm.nvim',
   'https://github.com/windwp/nvim-ts-autotag',
