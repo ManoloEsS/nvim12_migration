@@ -335,40 +335,6 @@ require('mini.ai').setup({ n_lines = 500 })
 require('mini.surround').setup()
 require('mini.statusline').setup({ use_icons = vim.g.have_nerd_font })
 
--- Harpoon
-local harpoon = require 'harpoon'
-harpoon:setup({
-  settings = {
-    save_on_toggle = true,
-    sync_on_ui_close = true,
-    key = function() return vim.uv.cwd() end,
-  },
-})
-vim.keymap.set('n', '<leader>ha', function() harpoon:list():add() end, { desc = 'Harpoon [A]dd file' })
-vim.keymap.set('n', '<leader>hm', function() harpoon.ui:toggle_quick_menu(harpoon:list()) end, { desc = 'Harpoon [M]enu' })
-vim.keymap.set('n', '<A-h>', function() harpoon:list():select(1) end, { desc = 'Harpoon mark [1]' })
-vim.keymap.set('n', '<A-j>', function() harpoon:list():select(2) end, { desc = 'Harpoon mark [2]' })
-vim.keymap.set('n', '<A-k>', function() harpoon:list():select(3) end, { desc = 'Harpoon mark [3]' })
-vim.keymap.set('n', '<A-l>', function() harpoon:list():select(4) end, { desc = 'Harpoon mark [4]' })
-vim.keymap.set('n', '<leader>hn', function() harpoon:list():next() end, { desc = 'Harpoon [N]ext' })
-vim.keymap.set('n', '<leader>hp', function() harpoon:list():prev() end, { desc = 'Harpoon [P]revious' })
-
--- 99.nvim
-local _99 = require '99'
-local _99_cwd = vim.uv.cwd()
-local _99_basename = vim.fs.basename(_99_cwd)
-_99.setup({
-  provider = _99.Providers.OpenCodeProvider,
-  model = 'opencode/big-pickle',
-  logger = {
-    level = _99.INFO,
-    path = '/tmp/' .. _99_basename .. '.99.debug',
-    print_on_error = true,
-  },
-})
-vim.keymap.set('n', '<leader>9s', function() _99.search() end, { desc = '[9]9 Search' })
-vim.keymap.set('v', '<leader>9v', function() _99.visual() end, { desc = '[9]9 Visual' })
-
 -- FTerm (migrated from fterm_undotree.lua)
 local fterm = require('FTerm')
 local custom_term = fterm:new({
@@ -457,5 +423,7 @@ require 'custom.options'
 require 'custom.keymaps'
 require 'custom.go'
 require 'custom.highlights'
+require 'custom.plugins.harpoon'
+require 'custom.plugins.99'
 
 -- vim: ts=2 sts=2 sw=2 et
