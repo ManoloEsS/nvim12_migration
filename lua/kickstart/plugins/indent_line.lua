@@ -1,13 +1,10 @@
 -- Add indentation guides even on blank lines
-
----@module 'lazy'
----@type LazySpec
-return {
-  'lukas-reineke/indent-blankline.nvim',
-  -- Enable `lukas-reineke/indent-blankline.nvim`
-  -- See `:help ibl`
-  main = 'ibl',
-  ---@module 'ibl'
-  ---@type ibl.config
-  opts = {},
-}
+-- https://github.com/lukas-reineke/indent-blankline.nvim
+--
+-- NOTE: This plugin is not currently installed via vim.pack.
+-- The active indent guide is provided by Snacks.indent (snacks.nvim).
+-- To enable indent-blankline, add the following to the vim.pack.add() call in init.lua:
+--   'https://github.com/lukas-reineke/indent-blankline.nvim',
+-- Then add the setup call below and require this file from init.lua.
+--
+-- require('ibl').setup({})

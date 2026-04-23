@@ -105,14 +105,14 @@ vim.pack.add({
   'https://github.com/folke/snacks.nvim',
 
   -- Utilities
-  'https://github.com/nvim-mini/mini.nvim',
+  'https://github.com/echasnovski/mini.nvim',
   'https://github.com/ThePrimeagen/harpoon',
   'https://github.com/numToStr/FTerm.nvim',
   'https://github.com/windwp/nvim-ts-autotag',
   'https://github.com/windwp/nvim-autopairs',
   'https://github.com/mfussenegger/nvim-lint',
   'https://github.com/NMAC427/guess-indent.nvim',
-  -- 'https://github.com/ThePrimeagen/99.nvim', -- TODO: fix git credential issue
+  'https://github.com/ThePrimeagen/99.nvim', -- Re-enabled for Neovim 0.12 migration
 }, { confirm = false })
 
 -- [[ Plugin Configuration ]]
@@ -123,61 +123,8 @@ require('nvim-treesitter').setup({
   ensure_installed = { 'lua', 'luadoc', 'c', 'diff', 'vim', 'vimdoc', 'query', 'bash', 'python', 'html', 'markdown', 'markdown_inline' },
 })
 
--- nvim-ts-autotag
-require('nvim-ts-autotag').setup({})
-
 -- Guess indent
 require('guess-indent').setup({})
-
--- Gitsigns
-require('gitsigns').setup({
-  signs = {
-    add = { text = '+' },
-    change = { text = '~' },
-    delete = { text = '_' },
-    topdelete = { text = '‾' },
-    changedelete = { text = '~' },
-  },
-  on_attach = function(bufnr)
-    local gitsigns = require 'gitsigns'
-    local function map(mode, l, r, opts)
-      opts = opts or {}
-      opts.buffer = bufnr
-      vim.keymap.set(mode, l, r, opts)
-    end
-    -- Navigation
-    map('n', ']c', function()
-      if vim.wo.diff then
-        vim.cmd.normal { ']c', bang = true }
-      else
-        gitsigns.nav_hunk 'next'
-      end
-    end, { desc = 'Jump to next git [c]hange' })
-    map('n', '[c', function()
-      if vim.wo.diff then
-        vim.cmd.normal { '[c', bang = true }
-      else
-        gitsigns.nav_hunk 'prev'
-      end
-    end, { desc = 'Jump to previous git [c]hange' })
-    -- Actions (visual mode)
-    map('v', '<leader>hs', function() gitsigns.stage_hunk { vim.fn.line '.', vim.fn.line 'v' } end, { desc = 'git [s]tage hunk' })
-    map('v', '<leader>hr', function() gitsigns.reset_hunk { vim.fn.line '.', vim.fn.line 'v' } end, { desc = 'git [r]eset hunk' })
-    -- Actions (normal mode)
-    map('n', '<leader>hs', gitsigns.stage_hunk, { desc = 'git [s]tage hunk' })
-    map('n', '<leader>hr', gitsigns.reset_hunk, { desc = 'git [r]eset hunk' })
-    map('n', '<leader>hS', gitsigns.stage_buffer, { desc = 'git [S]tage buffer' })
-    map('n', '<leader>hu', gitsigns.undo_stage_hunk, { desc = 'git [u]ndo stage hunk' })
-    map('n', '<leader>hR', gitsigns.reset_buffer, { desc = 'git [R]eset buffer' })
-    map('n', '<leader>hp', gitsigns.preview_hunk, { desc = 'git [p]review hunk' })
-    map('n', '<leader>hb', gitsigns.blame_line, { desc = 'git [b]lame line' })
-    map('n', '<leader>hd', gitsigns.diffthis, { desc = 'git [d]iff against index' })
-    map('n', '<leader>hD', function() gitsigns.diffthis '@' end, { desc = 'git [D]iff against last commit' })
-    -- Toggles
-    map('n', '<leader>tb', gitsigns.toggle_current_line_blame, { desc = '[T]oggle git show [b]lame line' })
-    map('n', '<leader>tD', gitsigns.toggle_deleted, { desc = '[T]oggle git show [D]eleted' })
-  end,
-})
 
 -- Which-key
 require('which-key').setup({
@@ -302,113 +249,10 @@ require('tokyonight').setup({
 })
 vim.cmd.colorscheme 'tokyonight-night'
 
--- Snacks (picker with box layout + preview)
-require('snacks').setup({
-  bigfile = { enabled = true },
-  dashboard = { enabled = false },
-  explorer = { enabled = true },
-  indent = { enabled = true },
-  input = { enabled = true },
-  notifier = { enabled = true, timeout = 3000 },
-  picker = {
-    enabled = true,
-    sources = {
-      explorer = {
-        auto_close = true,
-        layout = {
-          preset = 'default',
-          preview = true,
-        },
-      },
-    },
-  },
-  quickfile = { enabled = true },
-  scope = { enabled = false },
-  scroll = { enabled = true },
-  statuscolumn = { enabled = true },
-  words = { enabled = true },
-  styles = { notification = {} },
-})
-
 -- Mini.nvim
 require('mini.ai').setup({ n_lines = 500 })
 require('mini.surround').setup()
 require('mini.statusline').setup({ use_icons = vim.g.have_nerd_font })
-
--- Harpoon
-local harpoon = require 'harpoon'
-harpoon:setup({
-  settings = {
-    save_on_toggle = true,
-    sync_on_ui_close = true,
-    key = function() return vim.uv.cwd() end,
-  },
-})
-vim.keymap.set('n', '<leader>ha', function() harpoon:list():add() end, { desc = 'Harpoon [A]dd file' })
-vim.keymap.set('n', '<leader>hm', function() harpoon.ui:toggle_quick_menu(harpoon:list()) end, { desc = 'Harpoon [M]enu' })
-vim.keymap.set('n', '<A-h>', function() harpoon:list():select(1) end, { desc = 'Harpoon mark [1]' })
-vim.keymap.set('n', '<A-j>', function() harpoon:list():select(2) end, { desc = 'Harpoon mark [2]' })
-vim.keymap.set('n', '<A-k>', function() harpoon:list():select(3) end, { desc = 'Harpoon mark [3]' })
-vim.keymap.set('n', '<A-l>', function() harpoon:list():select(4) end, { desc = 'Harpoon mark [4]' })
-vim.keymap.set('n', '<leader>hn', function() harpoon:list():next() end, { desc = 'Harpoon [N]ext' })
-vim.keymap.set('n', '<leader>hp', function() harpoon:list():prev() end, { desc = 'Harpoon [P]revious' })
-
--- FTerm (migrated from fterm_undotree.lua)
-local fterm = require('FTerm')
-local custom_term = fterm:new({
-  ft = 'fterm_custom',
-  cmd = vim.o.shell,
-  dimensions = { height = 0.6, width = 0.5, x = 0.95, y = 0.95 },
-  border = 'rounded',
-})
-function _G._toggle_term() custom_term:toggle() end
-vim.keymap.set('n', '<C-t>', '<CMD>lua _toggle_term()<CR>', { desc = '[T]oggle Terminal' })
-vim.keymap.set('t', '<C-t>', '<C-\\><C-n><CMD>lua _toggle_term()<CR>', { desc = '[T]oggle Terminal' })
-
--- [[ Snacks Picker Keymaps (replaces Telescope) ]]
-local function sn(...) return Snacks.picker[...] end
-vim.keymap.set('n', '<leader><space>', sn 'smart', { desc = 'Smart Find Files' })
-vim.keymap.set('n', '<leader>,', sn 'buffers', { desc = 'Buffers' })
-vim.keymap.set('n', '<leader>/', sn 'grep', { desc = 'Grep' })
-vim.keymap.set('n', '<leader>:', sn 'command_history', { desc = 'Command History' })
-vim.keymap.set('n', '<leader>n', function() Snacks.notifier.show_history() end, { desc = 'Notification History' })
-vim.keymap.set('n', '<leader>e', function() Snacks.explorer() end, { desc = 'File Explorer' })
-vim.keymap.set('n', '<leader>ff', sn 'files', { desc = 'Find Files' })
-vim.keymap.set('n', '<leader>fg', sn 'git_files', { desc = 'Find Git Files' })
-vim.keymap.set('n', '<leader>fp', sn 'projects', { desc = 'Projects' })
-vim.keymap.set('n', '<leader>fr', sn 'recent', { desc = 'Recent' })
-vim.keymap.set('n', '<leader>gb', sn 'git_branches', { desc = 'Git Branches' })
-vim.keymap.set('n', '<leader>gl', sn 'git_log', { desc = 'Git Log' })
-vim.keymap.set('n', '<leader>gs', sn 'git_status', { desc = 'Git Status' })
-vim.keymap.set('n', '<leader>gS', sn 'git_stash', { desc = 'Git Stash' })
-vim.keymap.set('n', '<leader>gd', sn 'git_diff', { desc = 'Git Diff' })
-vim.keymap.set('n', '<leader>sh', sn 'help', { desc = '[S]earch [H]elp' })
-vim.keymap.set('n', '<leader>sk', sn 'keymaps', { desc = '[S]earch [K]eymaps' })
-vim.keymap.set('n', '<leader>sf', sn 'files', { desc = '[S]earch [F]iles' })
-vim.keymap.set({ 'n', 'v' }, '<leader>sw', sn 'grep_word', { desc = '[S]earch current [W]ord' })
-vim.keymap.set('n', '<leader>sg', sn 'grep', { desc = '[S]earch by [G]rep' })
-vim.keymap.set('n', '<leader>sd', sn 'diagnostics', { desc = '[S]earch [D]iagnostics' })
-vim.keymap.set('n', '<leader>sr', sn 'resume', { desc = '[S]earch [R]esume' })
-vim.keymap.set('n', '<leader>s.', function() Snacks.picker.builtin() end, { desc = '[S]earch Recent Files' })
-vim.keymap.set('n', '<leader>sc', sn 'commands', { desc = '[S]earch [C]ommands' })
-vim.keymap.set('n', '<leader><leader>', sn 'buffers', { desc = '[ ] Find existing buffers' })
-
--- Missing from old Telescope config
-vim.keymap.set('n', '<leader>sn', function() Snacks.picker.files { cwd = vim.fn.stdpath 'config' } end, { desc = '[S]earch [N]eovim files' })
-
--- LSP Attach keymaps - use vim.lsp.buf / Snacks picker
-vim.api.nvim_create_autocmd('LspAttach', {
-  group = vim.api.nvim_create_augroup('lsp-keymaps', { clear = true }),
-  callback = function(event)
-    local buf = event.buf
-    vim.keymap.set('n', 'grr', vim.lsp.buf.references, { buffer = buf, desc = '[G]oto [R]eferences' })
-    vim.keymap.set('n', 'gri', vim.lsp.buf.implementation, { buffer = buf, desc = '[G]oto [I]mplementation' })
-    vim.keymap.set('n', 'grd', vim.lsp.buf.definition, { buffer = buf, desc = '[G]oto [D]efinition' })
-    vim.keymap.set('n', 'grt', vim.lsp.buf.type_definition, { buffer = buf, desc = '[G]oto [T]ype Definition' })
-    vim.keymap.set('n', 'gO', function() Snacks.picker.lsp_symbols() end, { buffer = buf, desc = 'LSP D[o]cument Symbols' })
-    vim.keymap.set('n', 'gW', function() Snacks.picker.lsp_workspace_symbols() end, { buffer = buf, desc = 'LSP [W]orkspace Symbols' })
-  end,
-})
 
 -- [[ Custom keymaps from lua/custom/keymaps.lua ]]
 vim.keymap.set('n', '<leader>pv', vim.cmd.Ex, { desc = '[P]rev [V]iew files' })
@@ -441,5 +285,11 @@ require 'custom.options'
 require 'custom.keymaps'
 require 'custom.go'
 require 'custom.highlights'
+require 'custom.plugins.gitsigns'
+require 'custom.plugins.autotag'
+require 'custom.plugins.fterm_undotree'
+require 'custom.plugins.snacks'
+require 'custom.plugins.harpoon'
+require 'custom.plugins.99'
 
 -- vim: ts=2 sts=2 sw=2 et
